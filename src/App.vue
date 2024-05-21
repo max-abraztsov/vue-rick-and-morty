@@ -1,42 +1,31 @@
 <template>
-  <MyInput
-    v-model="searchQuery"
-    @input="inputSearch"
-    placeholder="Search..."
-  />
-  <MySelect
-    v-model="selectedSort"
-    :options="sortOptions"
-  />
-  <MyButton @click="applySorting">Применить</MyButton>
-  <div v-if="isCharacterLoading">Loading...</div>
-  <div v-else>
-    <div class="cards">
-      <Card v-for="character in sortedCharacters" :key="character.id" :character="character"/>
+  <div class="container">
+    <div class="filters">
+      <MyInput v-model="searchQuery" @input="inputSearch" placeholder="Search..."/>
+      <MySelect v-model="selectedSort" :options="sortOptions"/>
     </div>
-  </div>
-  <div class="page__wrapper">
-    <div 
-      class="page" 
-      v-for="pageNumber in paginatedPages" 
-      :key="pageNumber" 
-      :class="{'current-page': page === pageNumber}"
-      @click="changePage(pageNumber)"
-    >
-      {{ pageNumber }}
+    <MyButton @click="applySorting">Apply</MyButton>
+    <div v-if="isCharacterLoading">Loading...</div>
+    <div v-else>
+      <CardList :characters="sortedCharacters"/>
     </div>
-  </div>
+    <Pagination :paginatedPages="paginatedPages" :page="page"/>
+  </div>  
 </template>
 
 <script>
 import Card from './components/Card.vue';
-import { ref, watch } from 'vue';
+import CardList from './components/CardList.vue';
+import Pagination from './components/Pagination.vue';
+import { provide, ref, watch, defineComponent } from 'vue';
 import { useCharacter } from './hooks/useCharacter';
 import { useFilter } from './hooks/useFilter';
 import { usePagination } from './hooks/usePagination';
-export default {
+export default defineComponent({
   components:{
     Card,
+    CardList,
+    Pagination,
   },
   setup(){
     const page = ref(1);
@@ -61,6 +50,8 @@ export default {
       }
     }
 
+    provide('changePage', changePage);
+
     fetchingCharacters(1);
 
     watch(isCharacterLoading, (isLoading) => {
@@ -68,7 +59,6 @@ export default {
         applySorting();
       }
     });
-
 
     return {
       characters, 
@@ -85,24 +75,36 @@ export default {
       searchQuery,
     }
   }
-}
+});
 </script>
 
-<style scoped>
-  .cards{
+<style>
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body{
+    background-color: #1f2429;
+  }
+  .container{
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 10px;
+  }
+  .filters{
+    display: flex;
   }
 
-  .page__wrapper{
-    display: flex;
-  }
-  .page{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    border: 1px solid teal;
-    cursor: pointer;
+  @media (max-width: 680px){
+    .filters{
+      display: flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content: center;
+      margin-bottom: 5px;
+    }
   }
 </style>
